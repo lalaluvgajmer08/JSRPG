@@ -1,8 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function App() {
   const [ showForm, setShowForm] = useState(false);
-  const [tasks, setTasks] =useState([]);
+
+ const [tasks, setTasks] = useState(() => {
+  try {
+    const savedTasks = localStorage.getItem("tasks");
+    return savedTasks ? JSON.parse(savedTasks) : [];
+  } catch (error) {
+    console.error("Error loading tasks:", error);
+    return [];
+  }
+ });
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -10,6 +20,10 @@ function App() {
   const [message, setMessage] = useState("");
 
   const [ showManager, setShowManager] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  } , [tasks]);
 
 function submitTask (){
   const newTask ={
@@ -196,11 +210,14 @@ function handleDrop(e, newStatus) {
             <div className="form-group full-width">
               <label>Image</label>
 
-              <select>
-                <option>Select an image</option>
-                <option>Profile Image</option>
-                <option>Company Image</option>
-                <option>Other</option>
+              <select
+                value={image}
+                onChange={(e) => setImage(e.target.value)}
+              >
+                <option value="">Select an image</option>
+                <option value="Profile Image">Profile Image</option>
+                <option value="Company Image">Company Image</option>
+                <option value="Other">Other</option>
               </select>
             </div>
 
@@ -228,12 +245,21 @@ function handleDrop(e, newStatus) {
         </section>
         )}
 
+        {/*  TASK MANAGER */}
+
           {showManager && (
       <section className="task-manager">
 
         <h2>Task Manager</h2>
-
+       <button
+            className="clear-btn"
+            onClick={() => setTasks([])}
+          >
+            🗑️ Clear All Tasks
+          </button>  
         <div className="task-board">
+
+        
 
           {/* TO-DO */}
           <div
@@ -241,7 +267,7 @@ function handleDrop(e, newStatus) {
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => handleDrop(e, "todo")}
     >
-      <h3>TO-DO</h3>
+      <h3>📋 TO-DO</h3>
 
       {tasks
         .filter((task) => task.status === "todo")
@@ -278,7 +304,7 @@ function handleDrop(e, newStatus) {
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => handleDrop(e, "done")}
         >
-          <h3>DONE</h3>
+          <h3>✅ DONE</h3>
 
           {tasks
             .filter((task) => task.status === "done")
